@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>Trails Explorer - TrailGuard</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="trails.html" class="nav-logo">
+                <span>🌲</span> TrailGuard
+            </a>
+            <ul class="nav-links">
+                <li><a href="trails.html" class="nav-link active">Trails</a></li>
+                <li><a href="login.html" class="nav-link">Login</a></li>
+                <li><a href="register.html" class="nav-link">Register</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="trails-header">
+            <h1>Explore Kenyan Trails</h1>
+            <p>Search, filter, and plan your next trek while keeping safety first.</p>
+        </header>
+
+        <!-- Filters Section -->
+        <section class="filter-section">
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" class="search-input" placeholder="Search trails by name...">
+            </div>
+            
+            <div class="filter-container">
+                <select id="difficulty-select" class="filter-select">
+                    <option value="all">All Difficulties</option>
+                    <option value="easy">Easy</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Trails Grid (Populated dynamically via JS) -->
+        <section class="trails-grid" id="trails-grid">
+            <!-- Trail cards will be generated here -->
+        </section>
+
+        <!-- No Results Found -->
+        <div id="no-results" class="no-results">
+            <h3>No Trails Found</h3>
+            <p>We couldn't find any trails matching your criteria. Try adjusting your filters.</p>
+        </div>
+    </main>
+
+    <!-- Persistent SOS Button -->
+    <button class="sos-button" onclick="alert('SOS Alert activated! Dispatching emergency contacts...')">SOS</button>
+
+    <!-- Script Import -->
+    <script src="static/js/trails.js"></script>
+</body>
+</html>
