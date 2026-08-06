@@ -44,8 +44,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (response.ok) {
-                // Redirect on successful login
-                window.location.href = "trails.html";
+                // Redirect based on the presence of a redirect query param
+                const urlParams = new URLSearchParams(window.location.search);
+                let redirectPage = urlParams.get('redirect');
+                if (redirectPage) {
+                    if (!redirectPage.endsWith('.html')) {
+                        redirectPage += '.html';
+                    }
+                    window.location.href = redirectPage;
+                } else {
+                    window.location.href = "trails.html";
+                }
             } else {
                 // Display specific error message returned by API
                 showError(data.error || "Invalid email or password.");

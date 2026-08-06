@@ -113,19 +113,45 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `;
 
-            // Open modal on click
-            card.addEventListener("click", () => openModal(trail));
+            // Open modal on click after checking authentication status
+            card.addEventListener("click", () => checkAuthAndOpenModal(trail));
             
             // Allow keyboard activation (Enter or Space) for accessibility
             card.addEventListener("keydown", (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    openModal(trail);
+                    checkAuthAndOpenModal(trail);
                 }
             });
 
             trailsGrid.appendChild(card);
         });
+    }
+
+    // Check user login status before showing details modal
+    async function checkAuthAndOpenModal(trail) {
+        try {
+            const response = await fetch(`${API_BASE}/api/me`, {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                },
+                // Include credentials to verify Flask session cookie
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                // If logged in (200), show the full details
+                openModal(trail);
+            } else {
+                // If not logged in (401), redirect to login page with redirect param
+                window.location.href = "login.html?redirect=trails";
+            }
+        } catch (error) {
+            console.error("Auth check error during card tap:", error);
+            // Default to login page on server/connection error
+            window.location.href = "login.html?redirect=trails";
+        }
     }
 
     // Modal Control logic
