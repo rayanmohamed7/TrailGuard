@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
     <title>Trails Explorer - TrailGuard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="static/css/style.css">
 </head>
 <body>
@@ -60,6 +63,14 @@
 
     <!-- Persistent SOS Button -->
     <button class="sos-button" onclick="alert('SOS Alert activated! Dispatching emergency contacts...')">SOS</button>
+
+    <!-- Trail Detail Modal Overlay -->
+    <div id="trail-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <button id="modal-close" class="modal-close-btn" aria-label="Close modal">&times;</button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
 
     <!-- Script Import -->
     <script src="static/js/trails.js"></script>
