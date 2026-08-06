@@ -1,16 +1,21 @@
+import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from config import Config
 from routes.trails import trails_bp
+from routes.auth import auth_bp
 
 app = Flask(__name__)
 
-# Enable Cross-Origin Resource Sharing (CORS) so that frontend HTML pages opened via file:// 
-# can query the API server during development.
-CORS(app)
+# Set secret key for Flask session cookie encryption
+app.secret_key = os.environ.get("SECRET_KEY", "trailguard-super-secret-key-123456")
 
-# Register the trails blueprint under the '/api' prefix
+# Enable Cross-Origin Resource Sharing (CORS) with support for credentials (sessions/cookies)
+CORS(app, supports_credentials=True)
+
+# Register blueprints under the '/api' prefix
 app.register_blueprint(trails_bp, url_prefix='/api')
+app.register_blueprint(auth_bp, url_prefix='/api')
 
 @app.route('/api/health', methods=['GET'])
 def health_check():

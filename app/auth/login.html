@@ -30,7 +30,9 @@
                 <p>Sign in to secure your outdoor adventure</p>
             </div>
             
-            <form onsubmit="event.preventDefault(); window.location.href='trails.html';">
+            <div id="error-message" style="display: none; color: #f87171; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 20px; text-align: center;"></div>
+
+            <form id="login-form">
                 <div class="form-group">
                     <label class="form-label" for="email">Email Address</label>
                     <input class="form-input" type="email" id="email" placeholder="hiker@example.com" required>
@@ -53,5 +55,7 @@
     <!-- Persistent SOS Button -->
     <button class="sos-button" onclick="alert('SOS Alert activated! Dispatching emergency contacts...')">SOS</button>
 
+    <!-- Script Import -->
+    <script src="static/js/login.js"></script>
 </body>
 </html>
