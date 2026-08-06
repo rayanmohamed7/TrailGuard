@@ -1,17 +1,10 @@
 import datetime
 from flask import Blueprint, jsonify, request, session
 import bcrypt
-from models.trail import get_db
+from models.user import get_users_collection
 
 # Create the auth blueprint
 auth_bp = Blueprint('auth', __name__)
-
-def get_users_collection():
-    """Helper to get the users collection and ensure the unique email index is created."""
-    db = get_db()
-    # Proactively ensure the unique email index exists
-    db.users.create_index("email", unique=True)
-    return db.users
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
@@ -66,6 +59,7 @@ def register():
     
     user_doc = {
         "name": name.strip(),
+        "full_name": name.strip(), # Set both name and full_name for database compatibility
         "email": clean_email,
         "password_hash": password_hash,
         "emergency_contact": {
@@ -79,6 +73,7 @@ def register():
     try:
         result = users.insert_one(user_doc)
         user_id = str(result.inserted_id)
+        print(f"User created: {result.inserted_id}") # Flask terminal confirmation print
         
         # Log the user in by setting the session variable
         session['user_id'] = user_id
