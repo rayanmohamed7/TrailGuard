@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>Live Tracking - TrailGuard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet.js Maps CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Project Stylesheet -->
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        /* Specific page layout tweaks for Map and Tracking info */
+        .tracking-panel {
+            width: 100%;
+            max-width: 900px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            margin-bottom: 24px;
+        }
+
+        .tracking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        .tracking-trail-title h1 {
+            font-size: 1.8rem;
+            color: var(--text-primary);
+        }
+
+        .tracking-trail-title p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        .status-badge {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition-smooth);
+        }
+
+        .status-badge.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .status-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        .status-badge.active .status-pulse {
+            background: #10b981;
+            animation: status-glow 1.5s infinite ease-in-out;
+        }
+
+        @keyframes status-glow {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        .tracking-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tracking-btn {
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tracking-btn-start {
+            background: var(--primary-gradient);
+            color: var(--text-primary);
+        }
+
+        .tracking-btn-start:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(82, 183, 136, 0.25);
+        }
+
+        .tracking-btn-stop {
+            background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+            color: var(--text-primary);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .tracking-btn-stop:hover:not(:disabled) {
+            background: #ef4444;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+        }
+
+        .tracking-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .share-container {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            display: none; /* Shown dynamically when active */
+            flex-direction: column;
+            gap: 10px;
+            animation: slideUp 0.3s ease;
+        }
+
+        .share-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .share-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .share-url {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            outline: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .copy-btn {
+            background: rgba(82, 183, 136, 0.15);
+            border: 1px solid var(--border-color);
+            color: var(--primary-hover);
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-hover);
+            color: var(--text-primary);
+        }
+
+        /* Map styling */
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            z-index: 1;
+        }
+
+        .leaflet-container {
+            background: #040906;
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: var(--transition-smooth);
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+
+        .back-link:hover {
+            color: var(--primary-hover);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="trails.html" class="nav-logo">
+                <span>🌲</span> TrailGuard
+            </a>
+            <ul class="nav-links">
+                <li><a href="trails.html" class="nav-link active">Trails</a></li>
+                <li><a href="login.html" id="nav-login-btn" class="nav-link" style="display: none;">Login</a></li>
+                <li><a href="register.html" id="nav-register-btn" class="nav-link" style="display: none;">Register</a></li>
+                <li><a href="#" id="nav-logout-btn" class="nav-link" style="display: none;">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <a href="trails.html" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Back to Trails
+        </a>
+
+        <div class="tracking-panel">
+            <div class="tracking-header">
+                <div class="tracking-trail-title">
+                    <h1 id="trail-title-display">Live Tracking</h1>
+                    <p id="tracking-desc-display">Prepare to track your journey</p>
+                </div>
+                <div id="status-badge" class="status-badge">
+                    <div class="status-pulse"></div>
+                    <span id="status-text">Not Tracking</span>
+                </div>
+            </div>
+
+            <!-- Error Banner Container -->
+            <div id="error-message" style="display: none; color: #f87171; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); padding: 12px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 20px; text-align: center;"></div>
+
+            <div class="tracking-controls">
+                <button id="start-btn" class="tracking-btn tracking-btn-start">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Start Live Tracking
+                </button>
+                <button id="stop-btn" class="tracking-btn tracking-btn-stop" disabled>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                    </svg>
+                    Stop Tracking
+                </button>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div id="map"></div>
+
+            <!-- Share Link Container -->
+            <div id="share-container" class="share-container">
+                <span class="share-label">Share Live Track with Emergency Contact:</span>
+                <div class="share-row">
+                    <input type="text" id="share-url-input" class="share-url" readonly value="">
+                    <button id="copy-btn" class="copy-btn">Copy Link</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Persistent SOS Button -->
+    <button class="sos-button" onclick="alert('SOS Alert activated! Dispatching emergency contacts...')">SOS</button>
+
+    <!-- Leaflet JS Map Script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Live Tracking Controller JavaScript -->
+    <script src="static/js/tracking.js"></script>
+</body>
+</html>

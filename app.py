@@ -4,6 +4,7 @@ from flask_cors import CORS
 from config import Config
 from routes.trails import trails_bp
 from routes.auth import auth_bp
+from routes.gps import gps_bp
 
 app = Flask(__name__)
 
@@ -16,6 +17,7 @@ CORS(app, supports_credentials=True)
 # Register blueprints under the '/api' prefix
 app.register_blueprint(trails_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api')
+app.register_blueprint(gps_bp, url_prefix='/api/gps')
 
 @app.route('/api/health', methods=['GET'])
 def health_check():

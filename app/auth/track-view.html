@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>Hiker Tracker - TrailGuard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet Maps CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Project Stylesheet -->
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        .tracker-panel {
+            width: 100%;
+            max-width: 900px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            margin-bottom: 24px;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        .tracker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        .tracker-title h1 {
+            font-size: 1.8rem;
+            color: var(--text-primary);
+        }
+
+        .tracker-title p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        .status-badge {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .status-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        .status-badge.active .status-pulse {
+            background: #10b981;
+            animation: status-glow 1.5s infinite ease-in-out;
+        }
+
+        @keyframes status-glow {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        #map {
+            width: 100%;
+            height: 450px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            z-index: 1;
+            margin-bottom: 16px;
+        }
+
+        .leaflet-container {
+            background: #040906;
+        }
+
+        .update-info {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: right;
+            display: block;
+        }
+
+        /* Error/Invalid/Expired State Styling */
+        .expired-panel {
+            text-align: center;
+            padding: 60px 24px;
+            background: var(--bg-card);
+            border: 1px dashed rgba(239, 68, 68, 0.4);
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: none; /* Shown dynamically on error */
+        }
+
+        .expired-panel h2 {
+            font-size: 1.8rem;
+            color: #f87171;
+            margin-bottom: 12px;
+        }
+
+        .expired-panel p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .btn-home {
+            display: inline-block;
+            background: var(--primary-gradient);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-home:hover {
+            background: var(--primary-hover);
+            box-shadow: var(--accent-glow);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="trails.html" class="nav-logo">
+                <span>🌲</span> TrailGuard
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Tracker View Panel -->
+        <div id="tracker-panel" class="tracker-panel">
+            <div class="tracker-header">
+                <div class="tracker-title">
+                    <h1 id="view-trail-name">Live Track Status</h1>
+                    <p id="view-hiker-status">Connecting to live feed...</p>
+                </div>
+                <div id="view-status-badge" class="status-badge">
+                    <div class="status-pulse"></div>
+                    <span id="view-status-text">Connecting</span>
+                </div>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div id="map"></div>
+
+            <span id="view-last-updated" class="update-info">Last update: N/A</span>
+        </div>
+
+        <!-- Expired State Panel -->
+        <div id="expired-panel" class="expired-panel">
+            <h2>Tracking Link Expired</h2>
+            <p>This live tracking link is either invalid, has been stopped by the hiker, or expired after 24 hours of inactivity. Please contact the hiker directly if you need assistance.</p>
+            <a href="trails.html" class="btn-home">Go to Homepage</a>
+        </div>
+    </main>
+
+    <!-- Persistent SOS Button -->
+    <button class="sos-button" onclick="alert('SOS Alert activated! Dispatching emergency contacts...')">SOS</button>
+
+    <!-- Leaflet JS Map Script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Public Tracking View Controller JS -->
+    <script src="static/js/track-view.js"></script>
+</body>
+</html>
