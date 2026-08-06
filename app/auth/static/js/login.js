@@ -3,6 +3,16 @@
 const API_BASE = 'http://127.0.0.1:5000';
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Preserve redirect parameter on "Register here" link if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectParam = urlParams.get('redirect');
+    if (redirectParam) {
+        const registerLink = document.querySelector(".auth-footer a");
+        if (registerLink) {
+            registerLink.href = `register.html?redirect=${encodeURIComponent(redirectParam)}`;
+        }
+    }
+
     const loginForm = document.getElementById("login-form");
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");

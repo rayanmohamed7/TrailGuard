@@ -144,13 +144,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 // If logged in (200), show the full details
                 openModal(trail);
             } else {
-                // If not logged in (401), redirect to login page with redirect param
-                window.location.href = "login.html?redirect=trails";
+                // If not logged in (401), redirect to registration page with redirect param
+                window.location.href = "register.html?redirect=trails";
             }
         } catch (error) {
             console.error("Auth check error during card tap:", error);
-            // Default to login page on server/connection error
-            window.location.href = "login.html?redirect=trails";
+            // Default to registration page on server/connection error
+            window.location.href = "register.html?redirect=trails";
         }
     }
 

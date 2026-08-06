@@ -3,6 +3,16 @@
 const API_BASE = 'http://127.0.0.1:5000';
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Preserve redirect parameter on "Login here" link if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectParam = urlParams.get('redirect');
+    if (redirectParam) {
+        const loginLink = document.querySelector(".auth-footer a");
+        if (loginLink) {
+            loginLink.href = `login.html?redirect=${encodeURIComponent(redirectParam)}`;
+        }
+    }
+
     const registerForm = document.getElementById("register-form");
     const nameInput = document.getElementById("name");
     const emailInput = document.getElementById("email");
@@ -69,8 +79,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (response.ok) {
-                // Redirect on successful registration
-                window.location.href = "trails.html";
+                // Carry the redirect param forward to login.html on successful registration
+                if (redirectParam) {
+                    window.location.href = `login.html?redirect=${encodeURIComponent(redirectParam)}`;
+                } else {
+                    window.location.href = "login.html";
+                }
             } else {
                 // Display specific error message returned by API (e.g. email duplicate)
                 showError(data.error || "Failed to create account.");
